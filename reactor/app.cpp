@@ -62,6 +62,7 @@ app::app(){
 	m_drop_msg = 0;
 	m_appid = 0;
 	memset(m_name, 0, sizeof(m_name));
+	m_mutil_thread = true;
 }
 
 app::~app(){
@@ -83,64 +84,68 @@ int app::run(){
 		if(m_ring_buf.pop(data) == -1){
 			continue;
 		}
-		
-		app_hd * msg = (app_hd*)data;
-		if(msg->type == tcp_type){
-			switch(msg->event){
-				case ev_sys_recv:
-					on_recv(msg->u.tcp.n, msg->content, msg->length);
-					break;
-					
-				case ev_sys_close:
-					on_close(msg->u.tcp.n, *((int*)msg->content));
-					delete msg->u.tcp.n;
-					break;
-					
-				case ev_sys_accept:
-					on_accept(msg->u.tcp.n);
-					break;
-					
-				case ev_sys_connect_ok:
-					on_connect(msg->u.tcp.n);
-					break;
-					
-				case ev_sys_connect_fail:
-					on_connect(msg->u.tcp.n);
-					delete msg->u.tcp.n;
-				break;
-				
-			}
-		}
-		else if(msg->type == timer_type){
-			on_timer(msg->event, msg->u.timer.interval, msg->u.timer.ptr);
-		}
-		else if(msg->type == app_type){
-			on_app(msg->event, msg->content, msg->length);
-		}
-		else{
-			error_log("msg from unknown app_name(%s)\n", m_name);
-		}
-		free(msg);
+		dispatch((app_hd*)data);
+		free(data);
 	}
 	return 0;
 }
 
-int app::create(int appid, int msg_count, const char * app_name){
+int app::dispatch(const app_hd * msg){
 	
-	if(m_ring_buf.create(msg_count) == -1){
-		error_log("create ring buffer fail\n");
-		return -1;
+	if(msg->type == tcp_type){
+		switch(msg->event){
+			case ev_sys_recv:
+				on_recv(msg->u.tcp.n, msg->content, msg->length);
+				break;
+				
+			case ev_sys_close:
+				on_close(msg->u.tcp.n, *((int*)msg->content));
+				delete msg->u.tcp.n;
+				break;
+				
+			case ev_sys_accept:
+				on_accept(msg->u.tcp.n);
+				break;
+				
+			case ev_sys_connect_ok:
+				on_connect(msg->u.tcp.n);
+				break;
+				
+			case ev_sys_connect_fail:
+				on_connect(msg->u.tcp.n);
+				delete msg->u.tcp.n;
+			break;
+		}
 	}
+	else if(msg->type == timer_type){
+		on_timer(msg->event, msg->u.timer.interval, msg->u.timer.ptr);
+	}
+	else if(msg->type == app_type){
+		on_app(msg->event, msg->content, msg->length);
+	}
+	else{
+		error_log("msg from unknown app_name(%s)\n", m_name);
+	}
+	return 0;	
+}
+
+int app::create(int appid, int msg_count, const char * app_name, bool mutil_thread){
 	
 	strncpy(m_name, app_name, sizeof(m_name)-1);
-	
-	m_brun = true;
-	if(create_thread(NULL, app_run, m_name, (void*)this) == -1){
-		error_log("create_thread fail\n");
-		return -1;
-	}
-	
 	m_appid = appid;
+	m_mutil_thread = mutil_thread;
+	
+	if(mutil_thread){	
+		if(m_ring_buf.create(msg_count) == -1){
+			error_log("create ring buffer fail\n");
+			return -1;
+		}
+		m_brun = true;
+		if(create_thread(NULL, app_run, m_name, (void*)this) == -1){
+			error_log("create_thread fail\n");
+			return -1;
+		}
+	}
 	return 0;
 }
 
@@ -149,6 +154,10 @@ int app::get_appid(){
 }
 
 int  app::push(const app_hd & temp){
+	
+	if(!m_mutil_thread){
+		return dispatch(&temp);
+	}
 	
 	app_hd * msg = (app_hd*)malloc(sizeof(app_hd) + temp.length + 1);
 	if(!msg){

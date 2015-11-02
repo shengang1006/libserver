@@ -1,6 +1,8 @@
 #以下是指定编译器路径
 CC      := g++
 
+AR := ar rc
+
 #以下是指定编译需要的头文件
 INCLUDE := -I./ -I../
 
@@ -23,14 +25,14 @@ OBJS    := $(DIR:.cpp=.o)
 
 
 #以下是编译选项
-CFLAGS  := -g -Wall $(INCLUDE) $(LIBPATH) 
+CFLAGS  := -g -Wall -c $(INCLUDE) $(LIBPATH) 
 
-#以下是生成可执行文件
-TARGET  := reactor
+#以下是指定目标文件
+TARGETLIB := libserver2.a
 
-#1编译器 2编译选项 3输出 4生成的可执行文件 5需要的源文件 6需要当库文件
 all:
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) $(LIBS)
+	$(CC) $(CFLAGS) $(SRCS) $(LIBS)
+	$(AR) $(TARGETLIB) $(OBJS) 
 
 #make clean 删除所有的.o文件
 clean:

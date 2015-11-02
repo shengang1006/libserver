@@ -556,13 +556,13 @@ int server::add_abs_timer(int id, int year, int mon, int day,
 	return add_timer(id, interval, appid, context);
 }
 
-int server::register_app(app * a, int msg_count, const char * name){
+int server::register_app(app * a, int msg_count, const char * name, bool mutil_thread){
 	
 	if(!a || m_app_num >= max_app_num){
 		return -1;
 	}
 
-	if(a->create(m_app_num, msg_count, name) < 0){
+	if(a->create(m_app_num, msg_count, name, mutil_thread) < 0){
 		delete a;
 		return -1;
 	}

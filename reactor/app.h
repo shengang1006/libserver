@@ -86,7 +86,7 @@ public:
 	
 	virtual ~app();
 	
-	int create(int appid, int msg_cout, const char * app_name);
+	int create(int appid, int msg_cout, const char * app_name, bool mutil_thread = true);
 	int push(const app_hd & msg);
 	const char * name();
 	int get_appid();	
@@ -99,6 +99,7 @@ public:
 private:
 	static void * app_run(void* param);
 	int run();		
+	int dispatch(const app_hd * data);
 private:	
 	auto_mutex m_push_mutex;
 	ring_buffer m_ring_buf;
@@ -106,4 +107,5 @@ private:
 	bool m_brun;
 	int m_drop_msg;
 	int m_appid;
+	bool m_mutil_thread;
 };

@@ -24,11 +24,12 @@
 #define max_task_len 16
 #define max_path_len 512
 
-
+typedef unsigned char uchar;
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef uint64_t uint64;
 typedef int64_t  int64;
+
 
 typedef void*(*start_rtn)(void*);
 

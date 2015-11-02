@@ -20,7 +20,7 @@ public:
 		
     int loop();
 		
-	int register_app(app * a, int msg_count, const char * name);
+	int register_app(app * a, int msg_count, const char * name, bool mutil_thread = true);
 	
 	int add_timer(int id, int interval, int appid, void * context = NULL);
 	
