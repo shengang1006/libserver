@@ -331,9 +331,19 @@ int server::handle_write(app_connection * n){
 	if(n->get_status() == kconnecting){
 		return handle_connect(n);
 	}
-	else{
-		return n->post_send();
+	
+	int ret = n->post_send();
+	if(ret == 0){ 
+		post_tcp_msg(n, ev_sys_write);//2015 11 4
 	}
+	else if(ret > 0){ //has buffer in cache
+		return 0;
+	}
+	else{
+		return -1;
+	}
+	
+	return 0;
 }
 
 int server::handle_close(app_connection * n,  int reason){

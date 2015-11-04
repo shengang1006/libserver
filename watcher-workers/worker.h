@@ -14,6 +14,7 @@ protected:
 	virtual int on_initialize() = 0;
 	virtual int on_accept(connection * n) = 0;
 	virtual int on_recv(connection * n, char * data, int len) = 0;
+	virtual int on_write(connection * n);
 	virtual int on_close(connection * n, int reason) = 0;
 	virtual int on_connect(connection * n) = 0;
 	virtual int on_timer(int event, int interval, void * ptr) = 0;

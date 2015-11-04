@@ -52,6 +52,8 @@ public:
 	
 	buffer* get_recv_buffer();	
 	
+	int get_wait_to_send_data_len();
+	
 protected:
 	int update_writing(bool enable);
 	int update_event();

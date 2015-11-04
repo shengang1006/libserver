@@ -9,6 +9,7 @@ enum{
 	ev_sys_connect_fail,     //连接失败
 	ev_sys_accept,           //新的连接
 	ev_sys_recv,             //接收消息
+	ev_sys_write,            //发送消息
 	ev_sys_close,            //关闭消息
 };
 
@@ -19,8 +20,9 @@ public:
 	app_connection(int epfd, int fd);
 	int  get_appid();
 	void set_appid(int appid);	
-	int post_send(char * data, int len);
-	int post_send();
+	virtual int post_send(char * data, int len);
+	virtual int post_send();
+	virtual int get_wait_to_send_data_len();
 protected:
 	int m_appid;	
 	auto_mutex m_mutex;	
@@ -76,6 +78,7 @@ class app{
 public:
 	virtual int on_accept(app_connection * n) = 0;
 	virtual int on_recv(app_connection * n, char * data, int len) = 0;
+	virtual int on_write(app_connection * n);
 	virtual int on_close(app_connection * n, int reason) = 0;
 	virtual int on_connect(app_connection * n) = 0;
 	virtual int on_app(int event, char* content, int length) = 0;

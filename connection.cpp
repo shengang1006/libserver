@@ -124,6 +124,10 @@ time_t connection::get_alive_time(){
 void connection::set_alive_time(time_t tick){
 	m_alive_time = tick;
 }
+
+int connection::get_wait_to_send_data_len(){
+	return m_send_buffer.has;
+}
 	
 int connection::init(){
 
@@ -274,7 +278,7 @@ int connection::post_send(){
 	else{
 		memcpy(m_send_buffer.buf, m_send_buffer.buf + total, m_send_buffer.has);
 	}	
-	return 0;
+	return m_send_buffer.has ? 1: 0;
 }
 
 //
@@ -303,6 +307,7 @@ int connection::post_send(char * data, int len){
 			return 0;
 		}
 	}
+	
 	
 	int total = 0;
 	do{

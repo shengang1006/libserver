@@ -24,7 +24,11 @@ int app_connection::post_send(){
 	auto_lock __lock(m_mutex);
 	return connection::post_send();
 }
-	
+
+int app_connection::get_wait_to_send_data_len(){
+	auto_lock __lock(m_mutex);
+	return connection::get_wait_to_send_data_len();
+}	
 /********app_timer*********/	
 int app_timer::init(int precision /*= 1000*/){
 	m_precision = precision;
@@ -90,6 +94,10 @@ int app::run(){
 	return 0;
 }
 
+int app::on_write(app_connection * n){
+	return 0;
+}
+
 int app::dispatch(const app_hd * msg){
 	
 	if(msg->type == tcp_type){
@@ -114,6 +122,10 @@ int app::dispatch(const app_hd * msg){
 			case ev_sys_connect_fail:
 				on_connect(msg->u.tcp.n);
 				delete msg->u.tcp.n;
+			break;
+			
+			case ev_sys_write:
+				on_write(msg->u.tcp.n);
 			break;
 		}
 	}

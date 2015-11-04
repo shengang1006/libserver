@@ -312,6 +312,9 @@ int worker::handle_recv(connection * n){
 	return 0;
 }
 
+int worker::on_write(connection * n){
+	return 0;
+}
 
 int worker::handle_write(connection * n){
 
@@ -319,7 +322,16 @@ int worker::handle_write(connection * n){
 		return handle_connect(n);
 	}
 	else if(n->get_status() == kconnected){
-		return n->post_send();
+		int ret = n->post_send();
+		if(ret == 0){ 
+			return on_write(n);//2015 11 4
+		}
+		else if(ret > 0){ //has buffer in cache
+			return 0;
+		}
+		else{
+			return -1;
+		}
 	}
 	else{
 		warn_log("socket is disconnected\n");
