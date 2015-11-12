@@ -72,6 +72,7 @@ public:
 	auto_mutex m_mutex;	
 };
 
+class server;
 /***********app***************/
 class app{
 	
@@ -83,13 +84,12 @@ public:
 	virtual int on_connect(app_connection * n) = 0;
 	virtual int on_app(int event, char* content, int length) = 0;
 	virtual int on_timer(int event, int interval, void * ptr) = 0;
-	virtual int on_unpack(char * data, int len, int & packetlen, char *&packet) = 0;
-	
+		
 	app();
 	
 	virtual ~app();
 	
-	int create(int appid, int msg_cout, const char * app_name, bool mutil_thread = true);
+	int create(server * s, int appid, int msg_cout, const char * app_name, bool mutil_thread = true);
 	int push(const app_hd & msg);
 	const char * name();
 	int get_appid();	
@@ -111,4 +111,5 @@ private:
 	int m_drop_msg;
 	int m_appid;
 	bool m_mutil_thread;
+	server * m_svr;
 };

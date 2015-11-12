@@ -6,12 +6,27 @@
 class server{
 	
 private:
-	server();
+	
 	server(const server &);  
     server & operator = (const server &); 
+
+protected:
+	/*
+	return:
+	      -1 error, close conection
+		  0  packet is incomplete
+		  >0 packet is complete
+	*/
+	virtual int on_unpack(char * data, int len, int & pktlen, char *&packet);
+	
+	/*
+		return
+		 -1:  error, close conection
+	*/
+	virtual int on_dispatch(app_connection * n, char * data, int len, int app_max);
 	
 public:
-	static server * instance();
+	server();
 	virtual ~server();
 	
 	int init();
@@ -37,6 +52,7 @@ public:
 	int get_tcp_port();
 	
 	void set_keepalive(int timeout);
+	
 protected:
 	
 	int run();

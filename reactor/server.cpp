@@ -21,10 +21,6 @@ server:: ~server(){
 	stop();
 }
 
-server * server::instance(){
-	static server inst;
-	return &inst;
-}
 
 int server::run(){
 	
@@ -100,7 +96,21 @@ int server::run(){
 int server::get_tcp_port(){
 	return 	m_listen_port;
 }
-	
+
+int server::on_unpack(char * data, int len, int & pktlen, char *&packet){
+	packet = data;
+	pktlen = len;
+	return len;
+}
+
+int server::on_dispatch(app_connection * n, char * data, int len, int app_max){
+	if(n->get_appid() < 0){
+		n->set_appid(allot_appid());
+	}
+	return 0;
+}
+
+
 int server::post_app_msg(int dst, int event, void * content, int length){
 	
 	if(dst < 0 || dst >= m_app_num){
@@ -117,6 +127,11 @@ int server::post_app_msg(int dst, int event, void * content, int length){
 }
 
 int server::post_tcp_msg(app_connection * n, int event, void * content, int length){
+
+	int appid = n->get_appid();
+	if(appid < 0){
+		appid = 0;
+	}
 	
 	app_hd  msg = {0};
 	msg.event = event;
@@ -124,7 +139,7 @@ int server::post_tcp_msg(app_connection * n, int event, void * content, int leng
 	msg.length = length;
 	msg.type = tcp_type;
 	msg.u.tcp.n = n;
-	int ret = m_apps[n->get_appid()]->push(msg);
+	int ret = m_apps[appid]->push(msg);
 	if(ret < 0){
 		if(event == ev_sys_connect_fail){
 			delete n;
@@ -150,21 +165,22 @@ int server::post_timer_msg(evtime * e){
 	return ret;
 }
 
+
 int server::allot_appid(){
 	return m_last_app = (m_last_app + 1) % m_app_num;
 }
+
 
 int server::loop_unpack(app_connection * n){
 	
 	buffer * buf = n->get_recv_buffer();
 	int offset = 0;
-	app * a = m_apps[n->get_appid()];
 	
 	while(buf->has > 0){
 		
 		char* packet = NULL;
 		int pktlen = 0;
-		int consume = a->on_unpack(buf->buf + offset, buf->has ,pktlen, packet);
+		int consume = on_unpack(buf->buf + offset, buf->has ,pktlen, packet);
 		
 		if (consume < 0 || consume > buf->has){
 			error_log("unpack error consume(%d) has(%d)\n", consume, buf->has);
@@ -188,6 +204,10 @@ int server::loop_unpack(app_connection * n){
 		
 		//ignore empty packet
 		if(pktlen && packet){
+			if(on_dispatch(n, packet, pktlen, m_app_num) < 0){
+				error_log("on_dispatch fail\n");
+				return -1;
+			}
 			post_tcp_msg(n, ev_sys_recv, packet, pktlen);	
 		}	
 	}
@@ -331,19 +351,9 @@ int server::handle_write(app_connection * n){
 	if(n->get_status() == kconnecting){
 		return handle_connect(n);
 	}
-	
-	int ret = n->post_send();
-	if(ret == 0){ 
-		post_tcp_msg(n, ev_sys_write);//2015 11 4
-	}
-	else if(ret > 0){ //has buffer in cache
-		return 0;
-	}
 	else{
-		return -1;
+		return post_tcp_msg(n, ev_sys_write);//2015 11 4
 	}
-	
-	return 0;
 }
 
 int server::handle_close(app_connection * n,  int reason){
@@ -394,7 +404,6 @@ int server::handle_accept(){
 		
 		//allocate appid		
 		app_connection * n = new app_connection(m_epfd, fd);
-		n->set_appid(allot_appid());
 		n->set_status(kconnected);
 		n->set_peeraddr(peeraddr);
 		n->set_alive_time(cur);
@@ -572,7 +581,7 @@ int server::register_app(app * a, int msg_count, const char * name, bool mutil_t
 		return -1;
 	}
 
-	if(a->create(m_app_num, msg_count, name, mutil_thread) < 0){
+	if(a->create(this, m_app_num, msg_count, name, mutil_thread) < 0){
 		delete a;
 		return -1;
 	}

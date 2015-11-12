@@ -4,7 +4,7 @@
 /********app_connection*********/
 app_connection::app_connection(int epfd, int fd)
 :connection(epfd, fd){
-	m_appid = 0;
+	m_appid = -1;
 }
 
 int app_connection::get_appid(){
@@ -67,6 +67,7 @@ app::app(){
 	m_appid = 0;
 	memset(m_name, 0, sizeof(m_name));
 	m_mutil_thread = true;
+	m_svr = NULL;
 }
 
 app::~app(){
@@ -141,12 +142,12 @@ int app::dispatch(const app_hd * msg){
 	return 0;	
 }
 
-int app::create(int appid, int msg_count, const char * app_name, bool mutil_thread){
+int app::create(server * s, int appid, int msg_count, const char * app_name, bool mutil_thread){
 	
 	strncpy(m_name, app_name, sizeof(m_name)-1);
 	m_appid = appid;
 	m_mutil_thread = mutil_thread;
-	
+	m_svr = s;
 	if(mutil_thread){	
 		if(m_ring_buf.create(msg_count) == -1){
 			error_log("create ring buffer fail\n");
@@ -198,20 +199,20 @@ const char * app::name(){
 }
 
 int app::add_timer(int id, int interval, void * context){
-	return server::instance()->add_timer(id, interval, m_appid, context);
+	return m_svr->add_timer(id, interval, m_appid, context);
 }
 
 
 int app::add_abs_timer(int id, int year, int mon, int day, 
 					  int hour, int min, int sec, void * context /* = NULL */){
 
-	return server::instance()->add_abs_timer(id, year, mon, day, hour, min, sec, m_appid, context);
+	return m_svr->add_abs_timer(id, year, mon, day, hour, min, sec, m_appid, context);
 }
 
 int app::post_connect(const char * ip, ushort port, int delay, void * context){
-	return server::instance()->post_connect(ip, port, delay, m_appid, context);
+	return m_svr->post_connect(ip, port, delay, m_appid, context);
 }
 	
 int app::post_app_msg(int dst, int event, void * content, int length){
-	return server::instance()->post_app_msg(dst, event, content, length);
+	return m_svr->post_app_msg(dst, event, content, length);
 }
