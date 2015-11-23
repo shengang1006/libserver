@@ -267,8 +267,10 @@ int connection::post_send(){
 				break;
 			}
 		}
+
 		total += sent;
-		
+		warn_log("continue send %d/%d error(%d) socket(%d)\n", total, len, errno, m_fd);	
+				
 	}while(total < len);
 	
 	m_send_buffer.has = len - total;
@@ -278,7 +280,7 @@ int connection::post_send(){
 	else{
 		memcpy(m_send_buffer.buf, m_send_buffer.buf + total, m_send_buffer.has);
 	}	
-	return m_send_buffer.has ? 1: 0;
+	return 0;
 }
 
 //
@@ -296,7 +298,7 @@ int connection::post_send(char * data, int len){
 	
 	int pos = m_send_buffer.has;
 	if(pos){
-		debug_log("has left %d bytes, socket(%d)\n", pos + 1, m_fd);
+		debug_log("has left %d bytes, socket(%d)\n", pos, m_fd);
 		if(pos + len > m_send_buffer.len){
 			warn_log("buffer overflow socket(%d)\n", m_fd);
 			return -1;
