@@ -103,6 +103,7 @@ private:
 	static void * app_run(void* param);
 	int run();		
 	int dispatch(const app_hd * data);
+	int handle_write(app_connection * n);
 private:	
 	auto_mutex m_push_mutex;
 	ring_buffer m_ring_buf;

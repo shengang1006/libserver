@@ -269,7 +269,7 @@ int connection::post_send(){
 		}
 
 		total += sent;
-		warn_log("continue send %d/%d error(%d) socket(%d)\n", total, len, errno, m_fd);	
+		warn_log("continue send %d/%d socket(%d)\n", total, len, m_fd);	
 				
 	}while(total < len);
 	

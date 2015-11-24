@@ -95,6 +95,16 @@ int app::run(){
 	return 0;
 }
 
+int app::handle_write(app_connection * n){
+	n->post_send();
+	if(!n->get_wait_to_send_data_len()){
+		return on_write(n);
+	}
+	else{
+		return 0;
+	}
+}
+	
 int app::on_write(app_connection * n){
 	return n->post_send();
 }
@@ -126,7 +136,7 @@ int app::dispatch(const app_hd * msg){
 			break;
 			
 			case ev_sys_write:
-				on_write(msg->u.tcp.n);
+				handle_write(msg->u.tcp.n);
 			break;
 		}
 	}
