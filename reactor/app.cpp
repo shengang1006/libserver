@@ -106,7 +106,7 @@ int app::handle_write(app_connection * n){
 }
 	
 int app::on_write(app_connection * n){
-	return n->post_send();
+	return 0;
 }
 
 int app::dispatch(const app_hd * msg){
