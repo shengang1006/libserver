@@ -294,19 +294,24 @@ int server::handle_recv(app_connection * n)
 		int left = buf->len - buf->has;
 		if(left <= 0){
 			error_log("packet too large\n");
-			break;
+			return -1;
 		}
 		
 		int recv_bytes  = recv(n->fd(), buf->buf + buf->has, left, 0);	
-		if(recv_bytes < 0){	
-			if(errno != EINTR && errno != EAGAIN){
+		if(recv_bytes < 0){			
+			if(errno == EAGAIN){
+				return 0;
+			}
+			else if(errno == EINTR){
+				continue;
+			}
+			else{
 				error_log("recv error(%d %s) socket(%d)\n", errno, strerror(errno), n->fd());
 				return -1;
 			}
-			return 0;
 		}
 		else if(recv_bytes == 0){
-			error_log("remote close error(%d %s) socket(%d)\n", errno, strerror(errno), n->fd());
+			error_log("remote close socket(%d)\n", n->fd());
 			return -1;
 		}
 		else{
@@ -416,7 +421,7 @@ int server::handle_accept(){
 	
 	
 	if(errno != EAGAIN && errno != ECONNABORTED  && errno != EINTR){
-		error_log("net_accept.accept error\n");
+		error_log("accept error(%d)\n", errno);
 		return -1;
 	}
 	
