@@ -432,7 +432,7 @@ void server::set_keepalive(int timeout){
 	m_keepalive = timeout < 0 ? 120 : timeout;
 }
 
-int server::init(){
+int server::init(int time_precision /*= 1000*/){
 	//resource limit set 2015-1-23
 	struct rlimit limit;
 	limit.rlim_cur = 60000;
@@ -465,7 +465,7 @@ int server::init(){
 	}
 	
 		//init timer
-	if(m_timer.init() < 0){
+	if(m_timer.init(time_precision) < 0){
 		error_log("timer init fail\n");
 		close(m_epfd);
 		return -1;

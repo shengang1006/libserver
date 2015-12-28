@@ -29,7 +29,7 @@ public:
 	server();
 	virtual ~server();
 	
-	int init();
+	int init(int time_precision = 1000);
 	
 	int create_tcp_server(ushort port, int reuse = 1);
 		
