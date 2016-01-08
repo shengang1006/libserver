@@ -218,7 +218,7 @@ int create_thread(pthread_t * tid, start_rtn fun, const char * name, void * para
 	
 }
 
-int create_directory(const char * path, int amode /*= 777*/){
+int create_directory(const char * path, int amode /*= 0777*/){
 
 	int len = strlen(path);
 	if(len == 0 || len >= max_path_len){
