@@ -94,8 +94,8 @@ protected:
 /*create thread , suc 0*/
 int create_thread(pthread_t * tid, start_rtn fun, const char * name, void * param);
 
-/*create multi level directory , suc 0*/
-int create_directory(const char * path, int amode = 777);
+/*create multi level directory , amode(octal) suc 0*/
+int create_directory(const char * path, int amode = 0777);
 
 /*set no block fd, suc 0*/
 int make_no_block(int fd);
