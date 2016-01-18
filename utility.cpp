@@ -285,5 +285,6 @@ int sys_log(FILE * fd, const char *format, ...){
 	strftime(tmpbuf, sizeof(tmpbuf), "%b %d %X", &tm);
   
 	fprintf(fd, "%s %d %s", tmpbuf, getpid(), buf);
+	fflush(fd); //add 2016/1/18
 	return 0;
 }
