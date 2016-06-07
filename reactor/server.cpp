@@ -74,7 +74,7 @@ int server::run(){
 			}
 			
 			//error
-			if (events[i].events & (EPOLLERR | EPOLLHUP )){
+			if (events[i].events & (EPOLLERR | EPOLLHUP |EPOLLRDHUP)){
 				handle_close(n, error_reason);
 			}
 		}

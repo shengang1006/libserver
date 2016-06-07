@@ -191,7 +191,7 @@ int connection::update_event(){
 
 	struct epoll_event ev = {0};
 	ev.data.ptr = (void*)this;
-	ev.events = (m_epoll_events | EPOLLERR | EPOLLHUP);
+	ev.events = (m_epoll_events | EPOLLERR | EPOLLHUP | EPOLLRDHUP);
 	int ret = 0;
 
 	if(m_operation == knew){

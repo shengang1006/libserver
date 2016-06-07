@@ -61,7 +61,7 @@ int worker::run(){
 			}
 
 			//epoll error
-			if (m_event_list[i].events & (EPOLLERR | EPOLLHUP)){
+			if (m_event_list[i].events & (EPOLLERR | EPOLLHUP | EPOLLRDHUP)){
 				handle_error(n);
 			}
 		}
